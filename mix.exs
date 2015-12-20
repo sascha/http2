@@ -15,7 +15,7 @@ defmodule HTTP2.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [mod: {HTTP2.Application, []},
-    applications: [:logger],
+    applications: [:ranch, :ssl, :logger],
     registered: [HTTP2.Supervisor]]
   end
 
@@ -29,6 +29,6 @@ defmodule HTTP2.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:ranch, github: "ninenines/ranch"}]
   end
 end

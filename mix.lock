@@ -1,0 +1,1 @@
+%{"ranch": {:git, "https://github.com/ninenines/ranch.git", "4eca99ec830a1d43e554ef9b0a77c88bd3f9488e", []}}

@@ -6,7 +6,6 @@ defmodule HTTP2.State do
     :opts,
     :socket,
     :transport,
-    :protocol,
     :protocol_state
   ]
 end

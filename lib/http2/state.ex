@@ -4,7 +4,6 @@ defmodule HTTP2.State do
     :host,
     :port,
     :opts,
-    :keepalive_ref,
     :socket,
     :transport,
     :protocol,

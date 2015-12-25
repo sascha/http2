@@ -39,10 +39,10 @@ defmodule HTTP2 do
             {:ok, protocol} ->
               IO.puts "connected with protocol #{protocol}"
             _ ->
-              IO.puts "could not connect via SSL"
+              exit(:invalid_protocol)
           end
         {:error, _} ->
-          IO.puts "connection failed"
+          retry(state, retries)
       end
   end
 
@@ -56,8 +56,22 @@ defmodule HTTP2 do
         {:ok, socket} ->
           IO.puts "connected"
         {:error, _} ->
-          IO.puts "connection failed"
+          retry(state, retries)
       end
+  end
+
+  # Retry logic
+
+  defp retry(_, 0) do
+    exit(:gone)
+  end
+
+  defp retry(%HTTP2.State{opts: opts} = state, retries) do
+    Process.send_after(self(), :retry, Dict.get(opts, :retry_timeout, 5000))
+    receive do
+      :retry ->
+        connect(state, retries - 1)
+    end
   end
 
 end

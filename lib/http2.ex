@@ -32,8 +32,8 @@ defmodule HTTP2 do
     port: port,
     opts: opts,
     transport: transport = :ranch_ssl} = state, retries) do
-      transportOpts = [:binary, {:active, false}, {:alpn_advertised_protocols, ["h2"]} | Dict.get(opts, :transport_opts, [])]
-      case transport.connect(host, port, transportOpts) do
+      transport_opts = [:binary, {:active, false}, {:alpn_advertised_protocols, ["h2"]} | Dict.get(opts, :transport_opts, [])]
+      case transport.connect(host, port, transport_opts) do
         {:ok, socket} ->
           case :ssl.negotiated_protocol(socket) do
             {:ok, _} ->
@@ -52,8 +52,8 @@ defmodule HTTP2 do
     port: port,
     opts: opts,
     transport: transport} = state, retries) do
-      transportOpts = [:binary, {:active, false} | Dict.get(opts, :transport_opts, [])]
-      case transport.connect(host, port, transportOpts) do
+      transport_opts = [:binary, {:active, false} | Dict.get(opts, :transport_opts, [])]
+      case transport.connect(host, port, transport_opts) do
         {:ok, socket} ->
           IO.puts("connected without TLS")
           up(state ,socket)
@@ -79,9 +79,9 @@ defmodule HTTP2 do
   # Up/down logic
 
   defp up(%HTTP2.State{owner: owner, transport: transport} = state, socket) do
-    protoState = HTTP2.Protocol.init(owner, socket, transport)
+    proto_state = HTTP2.Protocol.init(owner, socket, transport)
     send(owner, {:http2_up, self()})
-    loop(%{state | socket: socket, protocol_state: protoState})
+    loop(%{state | socket: socket, protocol_state: proto_state})
   end
 
   defp down(%HTTP2.State{owner: owner, opts: opts} = state, reason) do
@@ -98,7 +98,7 @@ defmodule HTTP2 do
     opts: _opts,
     socket: socket,
     transport: transport,
-    protocol_state: protoState
+    protocol_state: proto_state
     } = state) do
       # Get the appropriate ok, closed, error message for this transport (tcp or ssl)
       {ok, closed, error} = transport.messages()
@@ -108,12 +108,12 @@ defmodule HTTP2 do
 
       receive do
         {^ok, socket, data} ->
-          case HTTP2.Protocol.handle(data, protoState) do
+          case HTTP2.Protocol.handle(data, proto_state) do
             :close ->
               transport.close(socket)
               down(state, :normal)
-            protoState2 ->
-              loop(%{state | protocol_state: protoState2})
+            proto_state2 ->
+              loop(%{state | protocol_state: proto_state2})
           end
         {^closed, socket} ->
           transport.close(socket)

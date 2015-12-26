@@ -5,7 +5,14 @@ defmodule HTTP2.Protocol do
     transport: nil,
     buffer: <<>>
   ]
+  @type t :: %HTTP2.Protocol{
+    owner: pid,
+    socket: :inet.socket | :ssl.sslsocket,
+    transport: module,
+    buffer: bitstring
+  }
 
+  @spec init(pid, :inet.socket | :ssl.sslsocket, module) :: HTTP2.Protocol.t
   def init(owner, socket, transport) do
     %HTTP2.Protocol{owner: owner, socket: socket, transport: transport}
   end
@@ -59,12 +66,14 @@ defmodule HTTP2.Protocol do
   end
 
   ## No padding
-  defp parse(<< length :: 24, 0 :: 8, _ :: 4, 0 :: 1, _ :: 2, flag_end_stream :: 1, _ :: 1, stream_id :: 31, data :: binary-size(length) >>) do
+  defp parse(<< length :: 24, 0 :: 8, _ :: 4, 0 :: 1, _ :: 2, flag_end_stream :: 1,
+  _ :: 1, stream_id :: 31, data :: binary-size(length) >>) do
     # TODO
   end
 
   ## Padding
-  defp parse(<< length :: 24, 0 :: 8, _ :: 4, 1 :: 1, _ :: 2, flag_end_stream :: 1, _ :: 1, stream_id :: 31, pad_length :: 8, rest :: bitstring >>)
+  defp parse(<< length :: 24, 0 :: 8, _ :: 4, 1 :: 1, _ :: 2, flag_end_stream :: 1,
+  _ :: 1, stream_id :: 31, pad_length :: 8, rest :: bitstring >>)
     when byte_size(rest) >= length - 1 do
       payloadLength = length - pad_length
       case rest do

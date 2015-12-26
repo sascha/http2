@@ -1,6 +1,8 @@
 defmodule HTTP2 do
+  @spec open(String.t, :inet.port_number, Keyword.t) :: {:ok, pid}
   def open(host, port, opts \\ []) do
-    Task.Supervisor.start_child(HTTP2.Supervisor, __MODULE__, :init, [self(), host, port, opts])
+    Task.Supervisor.start_child(HTTP2.Supervisor, __MODULE__, :init,
+    [self(), String.to_char_list(host), port, opts])
   end
 
   def init(owner, host, port, opts) do
@@ -19,6 +21,7 @@ defmodule HTTP2 do
       transport: transport}, retry)
   end
 
+  @spec default_transport(:inet.port_number) :: :ssl | :tcp
   defp default_transport(443) do
     :ssl
   end

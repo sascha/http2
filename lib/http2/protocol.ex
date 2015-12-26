@@ -32,6 +32,9 @@ defmodule HTTP2.Protocol do
 
   # Parsing
 
+  # TODO: Replace `any` with actual type
+  @spec parse(bitstring) :: {:ok, any, bitstring} | any
+
   ##
   ## DATA frame
   ##
@@ -351,6 +354,9 @@ defmodule HTTP2.Protocol do
   ##
   ## Settings Parsing
   ##
+
+  # TODO: Replace `any` with actual type
+  @spec parse_settings(bitstring, non_neg_integer, Keyword.t) :: {:ok, any, bitstring} | any
 
   defp parse_settings(rest, 0, settings) do
     IO.puts("received settings: #{inspect settings}")

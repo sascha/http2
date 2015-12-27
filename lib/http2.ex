@@ -59,7 +59,7 @@ defmodule HTTP2 do
       case transport.connect(host, port, transport_opts) do
         {:ok, socket} ->
           IO.puts("connected without TLS")
-          up(state ,socket)
+          up(state, socket)
         {:error, _} ->
           retry(state, retries)
       end

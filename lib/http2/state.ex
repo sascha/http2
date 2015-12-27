@@ -8,6 +8,7 @@ defmodule HTTP2.State do
     :transport,
     :protocol_state
   ]
+  
   @type t :: %HTTP2.State{
     owner: pid,
     host: :inet.hostname,

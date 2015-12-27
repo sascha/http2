@@ -42,6 +42,9 @@ defmodule HTTP2.Protocol do
     | :http_1_1_required
     | :unknown_error
 
+  @type format_error :: { :connection_error, error, String.t }
+    | { :stream_error, streamid, error, String.t }
+
   @type frame :: { :data, streamid, fin, binary }
     | { :headers, streamid, fin, head_fin, binary }
     | { :headers, streamid, fin, head_fin, exclusive, streamid, weight, binary }
@@ -77,23 +80,19 @@ defmodule HTTP2.Protocol do
 
   # Parsing
 
-  # TODO: Replace `any` with actual type
-  @spec parse(bitstring) :: {:ok, frame, bitstring} | any
+  @spec parse(bitstring) :: {:ok, frame, bitstring} | format_error
 
   ##
   ## DATA frame
   ##
 
   defp parse(<< _ :: 24, 0 :: 8, _ :: 9, 0 :: 31, _ :: bitstring >>) do
-    # TODO: DATA frames MUST be associated with a stream. If a DATA frame is received
-    # whose stream identifier field is 0x0, the recipient MUST respond with a connection
-    # error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "DATA frames MUST be associated with a stream." }
   end
 
   defp parse(<< length :: 24, 0 :: 8, _ :: 4, 1 :: 1, _ :: 35,
   pad_length :: 8, _ :: bitstring >>) when pad_length >= length do
-    # TODO: If the length of the padding is the length of the frame payload or greater,
-    # the recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "Length of padding MUST be less than length of payload."}
   end
 
   ## No padding
@@ -111,8 +110,7 @@ defmodule HTTP2.Protocol do
         << data :: binary-size(payload_length), 0 :: binary-size(pad_length), rest :: bitstring >> ->
           {:ok, {:data, stream_id, parse_fin(flag_end_stream), data}, rest}
         _ ->
-          # TODO A receiver is not obligated to verify padding but MAY treat non-zero
-          # padding as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+          { :connection_error, :protocol_error, "Padding octets MUST be set to zero." }
       end
   end
 
@@ -121,21 +119,17 @@ defmodule HTTP2.Protocol do
   ##
 
   defp parse(<< _ :: 24, 1 :: 8, _ :: 9, 0 :: 31, _ :: bitstring >>) do
-    # TODO: HEADERS frames MUST be associated with a stream. If a HEADERS frame is
-    # received whose stream identifier field is 0x0, the recipient MUST respond with
-    # a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "HEADERS frames MUST be associated with a stream." }
   end
 
   defp parse(<< length :: 24, 1 :: 8, _ :: 4, 1 :: 1, _ :: 35,
   pad_length :: 8, _ :: bitstring >>) when pad_length >= length do
-    # TODO: Padding that exceeds the size remaining for the header block fragment
-    # MUST be treated as a PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "Length of padding MUST be less than length of payload." }
   end
 
   defp parse(<< length :: 24, 1 :: 8, _ :: 2, 1 :: 1, _ :: 1, 1 :: 1, _ :: 35,
   pad_length :: 8, _ :: bitstring >>) when pad_length >= length - 5 do
-    # TODO: Padding that exceeds the size remaining for the header block fragment
-    # MUST be treated as a PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "Length of padding MUST be less than length of payload." }
   end
 
   ## No padding, no priority
@@ -157,8 +151,7 @@ defmodule HTTP2.Protocol do
         {:ok, {:headers, stream_id, parse_fin(flag_end_stream), parse_head_fin(flag_end_headers),
         header_block_fragment}, rest}
       _ ->
-        # TODO A receiver is not obligated to verify padding but MAY treat non-zero
-        # padding as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+        { :connection_error, :protocol_error, "Padding octets MUST be set to zero." }
     end
   end
 
@@ -184,8 +177,7 @@ defmodule HTTP2.Protocol do
         {:ok, {:headers, stream_id, parse_fin(flag_end_stream), parse_head_fin(flag_end_headers),
         parse_exclusive(e), dep_stream_id, weight + 1, header_block_fragment}, rest}
       _ ->
-        # TODO A receiver is not obligated to verify padding but MAY treat non-zero
-        # padding as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+        { :connection_error, :protocol_error, "Padding octets MUST be set to zero." }
     end
   end
 
@@ -194,8 +186,7 @@ defmodule HTTP2.Protocol do
   ##
 
   defp parse(<< 5 :: 24, 2 :: 8, _ :: 9, 0 :: 31, _ :: bitstring >>) do
-    # TODO If a PRIORITY frame is received with a stream identifier of 0x0, the recipient
-    # MUST respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "PRIORITY frames MUST be associated with a stream." }
   end
 
   defp parse(<< 5 :: 24, 2 :: 8, _ :: 9, stream_id :: 31, e :: 1, dep_stream_id :: 31,
@@ -203,10 +194,8 @@ defmodule HTTP2.Protocol do
     {:ok, {:priority, stream_id, parse_exclusive(e), dep_stream_id, weight + 1}, rest}
   end
 
-  defp parse(<< bad_length :: 24, 2 :: 8, _ :: 9, stream_id :: 31,
-  _ :: binary-size(bad_length), rest :: bitstring >>) do
-    # TODO A PRIORITY frame with a length other than 5 octets MUST be treated as a
-    # stream error (Section 5.4.2) of type FRAME_SIZE_ERROR.
+  defp parse(<< _ :: 24, 2 :: 8, _ :: 9, stream_id :: 31, _ :: bitstring >>) do
+    { :stream_error, stream_id, :frame_size_error, "PRIORITY frames MUST be 5 bytes wide." }
   end
 
   ##
@@ -214,17 +203,15 @@ defmodule HTTP2.Protocol do
   ##
 
   defp parse(<< 4 :: 24, 3 :: 8, _ :: 9, 0 :: 31, _ :: bitstring >>) do
-    # TODO If a RST_STREAM frame is received with a stream identifier of 0x0, the
-    # recipient MUST treat this as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "RST_STREAM frames MUST be associated with a stream." }
   end
 
   defp parse(<< 4 :: 24, 3 :: 8, _ :: 9, stream_id :: 31, error_code :: 32, rest :: bitstring >>) do
     {:ok, {:rst_stream, stream_id, parse_error_code(error_code)}, rest}
   end
 
-  defp parse(<< bad_length :: 24, 3 :: 8, _ :: 9, _ :: binary-size(bad_length), rest :: bitstring >>) do
-    # TODO A RST_STREAM frame with a length other than 4 octets MUST be treated as
-    # a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.
+  defp parse(<< _ :: 24, 3 :: 8, _ :: bitstring >>) do
+    { :connection_error, :frame_size_error, "RST_STREAM frames MUST be 4 bytes wide." }
   end
 
   ##
@@ -236,14 +223,12 @@ defmodule HTTP2.Protocol do
   end
 
   defp parse(<< _ :: 24, 4 :: 8, _ :: 7, 1 :: 1, _ :: 1, 0 :: 31, _ :: bitstring >>) do
-    # TODO Receipt of a SETTINGS frame with the ACK flag set and a length field value
-    # other than 0 MUST be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.
+    { :connection_error, :frame_size_error, "SETTINGS frames with the ACK flag set MUST have a length of 0." }
   end
 
   defp parse(<< length :: 24, 4 :: 8, _ :: 7, 0 :: 1, _ :: 1, 0 :: 31, _ :: bitstring >>)
   when rem(length, 6) != 0 do
-    # TODO A SETTINGS frame with a length other than a multiple of 6 octets MUST
-    # be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.
+    { :connection_error, :frame_size_error, "SETTINGS frames MUST have a length multiple of 6." }
   end
 
   defp parse(<< length :: 24, 4 :: 8, _ :: 7, 0 :: 1, _ :: 1, 0 :: 31, rest :: bitstring >>)
@@ -252,9 +237,7 @@ defmodule HTTP2.Protocol do
   end
 
   defp parse(<< _ :: 24, 4 :: 8, _ :: bitstring >>) do
-    # TODO If an endpoint receives a SETTINGS frame whose stream identifier field
-    # is anything other than 0x0, the endpoint MUST respond with a connection error
-    # (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "SETTINGS frames MUST NOT be associated with a stream." }
   end
 
   ##
@@ -262,8 +245,7 @@ defmodule HTTP2.Protocol do
   ##
 
   defp parse(<< _ :: 24, 5 :: 8, _ :: 9, 0 :: 31, _ :: bitstring >>) do
-    # TODO If the stream identifier field specifies the value 0x0, a recipient MUST
-    # respond with a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "PUSH_PROMISE frames MUST be associated with a stream." }
   end
 
   ## No padding
@@ -287,8 +269,7 @@ defmodule HTTP2.Protocol do
         {:ok, {:push_promise, stream_id, parse_head_fin(flag_end_headers), promised_stream_id,
         header_block_fragment}, rest}
       _ ->
-        # TODO A receiver is not obligated to verify padding but MAY treat non-zero
-        # padding as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+        { :connection_error, :protocol_error, "Padding octets MUST be set to zero." }
     end
   end
 
@@ -305,14 +286,11 @@ defmodule HTTP2.Protocol do
   end
 
   defp parse(<< 8 :: 24, 6 :: 8, _ :: 104, _ :: bitstring >>) do
-    # TODO If a PING frame is received with a stream identifier field value other
-    # than 0x0, the recipient MUST respond with a connection error (Section 5.4.1)
-    # of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "PING frames MUST NOT be associated with a stream." }
   end
 
   defp parse(<< _ :: 24, 6 :: 8, _ :: bitstring >>) do
-    # TODO Receipt of a PING frame with a length field value other than 8 MUST
-    # be treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.
+    { :connection_error, :frame_size_error, "PING frames MUST be 8 bytes wide." }
   end
 
   ##
@@ -327,8 +305,7 @@ defmodule HTTP2.Protocol do
   end
 
   defp parse(<< _ :: 24, 7 :: 8, _ :: 40, _ :: bitstring >>) do
-    # TODO An endpoint MUST treat a GOAWAY frame with a stream identifier other
-    # than 0x0 as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "GOAWAY frames MUST NOT be associated with a stream." }
   end
 
   ##
@@ -336,10 +313,7 @@ defmodule HTTP2.Protocol do
   ##
 
   defp parse(<< 4 :: 24, 8 :: 8, _ :: 9, 0 :: 31, _ :: 1, 0 :: 31 >>) do
-    # TODO A receiver MUST treat the receipt of a WINDOW_UPDATE frame with an
-    # flow-control window increment of 0 as a stream error (Section 5.4.2) of
-    # type PROTOCOL_ERROR; errors on the connection flow-control window MUST be
-    # treated as a connection error (Section 5.4.1).
+    { :connection_error, :protocol_error, "WINDOW_UPDATE frames MUST have a non-zero increment." }
   end
 
   defp parse(<< 4 :: 24, 8 :: 8, _ :: 9, 0 :: 31, _ :: 1, increment :: 31, rest :: bitstring >>) do
@@ -347,10 +321,7 @@ defmodule HTTP2.Protocol do
   end
 
   defp parse(<< 4 :: 24, 8 :: 8, _ :: 9, stream_id :: 31, _ :: 1, 0 :: 31, _ :: bitstring >>) do
-    # TODO A receiver MUST treat the receipt of a WINDOW_UPDATE frame with an
-    # flow-control window increment of 0 as a stream error (Section 5.4.2) of
-    # type PROTOCOL_ERROR; errors on the connection flow-control window MUST be
-    # treated as a connection error (Section 5.4.1).
+    { :stream_error, stream_id, :protocol_error, "WINDOW_UPDATE frames MUST have a non-zero increment." }
   end
 
   defp parse(<< 4 :: 24, 8 :: 8, _ :: 9, stream_id :: 31, _ :: 1, increment :: 31, rest :: bitstring >>) do
@@ -358,8 +329,7 @@ defmodule HTTP2.Protocol do
   end
 
   defp parse(<< _ :: 24, 8 :: 8, _ :: bitstring >>) do
-    # TODO A WINDOW_UPDATE frame with a length other than 4 octets MUST be
-    # treated as a connection error (Section 5.4.1) of type FRAME_SIZE_ERROR.
+    { :connection_error, :frame_size_error, "WINDOW_UPDATE frames MUST be 4 bytes wide." }
   end
 
   ##
@@ -367,9 +337,7 @@ defmodule HTTP2.Protocol do
   ##
 
   defp parse(<< _ :: 24, 9 :: 8, _ :: 9, 0 :: 31, _ :: bitstring >>) do
-    # TODO  If a CONTINUATION frame is received whose stream identifier field is
-    # 0x0, the recipient MUST respond with a connection error (Section 5.4.1) of
-    # type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "CONTINUATION frames MUST be associated with a stream." }
   end
 
   defp parse(<< length :: 24, 9 :: 8, _ :: 5, flag_end_headers :: 1, _ :: 3,
@@ -389,8 +357,7 @@ defmodule HTTP2.Protocol do
   ## Settings Parsing
   ##
 
-  # TODO: Replace `any` with actual type
-  @spec parse_settings(bitstring, non_neg_integer, Keyword.t) :: {:ok, {:settings, settings}, bitstring} | any
+  @spec parse_settings(bitstring, non_neg_integer, Keyword.t) :: {:ok, {:settings, settings}, bitstring} | format_error
 
   defp parse_settings(rest, 0, settings) do
     IO.puts("received settings: #{inspect settings}")
@@ -414,8 +381,7 @@ defmodule HTTP2.Protocol do
   end
 
   defp parse_settings(<< 2 :: 16, _ :: 32, _ :: bitstring >>, _, _) do
-    # TODO Any value other than 0 or 1 MUST be treated as a connection error
-    # (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "The SETTINGS_ENABLE_PUSH value MUST be 0 or 1." }
   end
 
   ## SETTINGS_MAX_CONCURRENT_STREAMS
@@ -427,8 +393,7 @@ defmodule HTTP2.Protocol do
   ## SETTINGS_INITIAL_WINDOW_SIZE
 
   defp parse_settings(<< 4 :: 16, value :: 32, _ :: bitstring >>, _, _) when value > 0x7fffffff do
-    # TODO Values above the maximum flow-control window size of 2^31-1 MUST be
-    # treated as a connection error (Section 5.4.1) of type FLOW_CONTROL_ERROR.
+    { :connection_error, :flow_control_error, "The maximum SETTINGS_INITIAL_WINDOW_SIZE value is 0x7fffffff." }
   end
 
   defp parse_settings(<< 4 :: 16, value :: 32, rest :: bitstring >>, length, settings) do
@@ -438,10 +403,7 @@ defmodule HTTP2.Protocol do
   ## SETTINGS_MAX_FRAME_SIZE
 
   defp parse_settings(<< 5 :: 16, value :: 32, _ :: bitstring >>, _, _) when value < 0x4000 or value > 0xFFFFFF do
-    # TODO The initial value is 2^14 (16,384) octets. The value advertised by an
-    # endpoint MUST be between this initial value and the maximum allowed frame
-    # size (2^24-1 or 16,777,215 octets), inclusive. Values outside this range
-    # MUST be treated as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
+    { :connection_error, :protocol_error, "The SETTINGS_MAX_FRAME_SIZE value MUST be between 0x4000 and 0xFFFFFF." }
   end
 
   defp parse_settings(<< 5 :: 16, value :: 32, rest :: bitstring >>, length, settings) do

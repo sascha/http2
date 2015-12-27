@@ -65,22 +65,34 @@ defmodule HTTP2.Protocol do
     %HTTP2.Protocol{owner: owner, socket: socket, transport: transport}
   end
 
+  @spec handle(binary, HTTP2.Protocol.t) :: HTTP2.Protocol.t | :close
   def handle(data, %HTTP2.Protocol{buffer: buffer} = state) do
     handle_loop(buffer <> data, %{state | buffer: <<>>})
   end
 
+  @spec handle_loop(binary, HTTP2.Protocol.t) :: HTTP2.Protocol.t | :close
   defp handle_loop(data, state) do
     case parse(data) do
       {:ok, frame, rest} ->
-        IO.puts("got a complete frame")
+        IO.puts("got a complete frame: #{inspect frame}")
+        handle_frame(rest, state, frame)
       :more ->
         %{state | buffer: data}
     end
   end
 
+  # Frame Handling
+
+  @spec handle_frame(binary, HTTP2.Protocol.t, frame) :: HTTP2.Protocol.t | :close
+
+  defp handle_frame(rest, state, frame) do
+    # TODO
+    handle_loop(rest, state)
+  end
+
   # Parsing
 
-  @spec parse(bitstring) :: {:ok, frame, bitstring} | format_error
+  @spec parse(bitstring) :: {:ok, frame, bitstring} | format_error | :more
 
   ##
   ## DATA frame

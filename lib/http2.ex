@@ -5,6 +5,7 @@ defmodule HTTP2 do
     [self(), String.to_char_list(host), port, opts])
   end
 
+  @spec init(pid, char_list, :inet.port_number, Keyword.t) :: no_return
   def init(owner, host, port, opts) do
     retry = Dict.get(opts, :retry, 5)
     transport = case Dict.get(opts, :transport, default_transport(port)) do
@@ -30,6 +31,7 @@ defmodule HTTP2 do
     :tcp
   end
 
+  @spec connect(HTTP2.State.t, non_neg_integer) :: no_return
   defp connect(%HTTP2.State{
     host: host,
     port: port,
@@ -67,6 +69,7 @@ defmodule HTTP2 do
 
   # Retry logic
 
+  @spec retry(HTTP2.State.t, non_neg_integer) :: no_return
   defp retry(_, 0) do
     exit(:gone)
   end
@@ -81,12 +84,14 @@ defmodule HTTP2 do
 
   # Up/down logic
 
+  @spec up(HTTP2.State.t, :inet.socket | :ssl.sslsocket) :: no_return
   defp up(%HTTP2.State{owner: owner, transport: transport} = state, socket) do
     proto_state = HTTP2.Protocol.init(owner, socket, transport)
     send(owner, {:http2_up, self()})
     loop(%{state | socket: socket, protocol_state: proto_state})
   end
 
+  @spec down(HTTP2.State.t, :normal | :closed | {:error, any}) :: no_return
   defp down(%HTTP2.State{owner: owner, opts: opts} = state, reason) do
     send(owner, {:http2_down, self(), reason})
     retry(%{state | socket: nil}, Dict.get(opts, :retry, 5))
@@ -94,6 +99,7 @@ defmodule HTTP2 do
 
   # loop
 
+  @spec loop(HTTP2.State.t) :: no_return
   defp loop(%HTTP2.State{
     owner: _owner,
     host: _host,

@@ -50,6 +50,14 @@ defmodule HTTP2.Protocol do
   ## Frame Sending
   ##
 
+  @spec request(HTTP2.Protocol.t, reference, iodata, :inet.hostname, :inet.port_number,
+  iodata, HTTP2.headers, iodata) :: HTTP2.Protocol.t
+  def request(%HTTP2.Protocol{socket: socket, transport: transport} = state,
+  stream_ref, method, host, port, path, headers \\ [], body \\ <<>>) do
+    # TODO
+    state
+  end
+
   @spec preface(HTTP2.Protocol.t) :: HTTP2.Protocol.t
   def preface(%HTTP2.Protocol{socket: socket, transport: transport} = state) do
     IO.puts "Sending preface"

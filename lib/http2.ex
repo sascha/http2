@@ -1,4 +1,6 @@
 defmodule HTTP2 do
+  @type headers :: [{binary, iodata}]
+
   @spec open(String.t, :inet.port_number, Keyword.t) :: {:ok, pid}
   def open(host, port, opts \\ []) do
     Task.Supervisor.start_child(HTTP2.Supervisor, __MODULE__, :init,
@@ -22,6 +24,52 @@ defmodule HTTP2 do
       opts: opts,
       transport: transport}, retry)
   end
+
+  # HTTP Methods
+
+  @spec head(pid, iodata, headers) :: reference
+  def head(server_pid, path, headers \\ []) do
+    request(server_pid, "HEAD", path, headers)
+  end
+
+  @spec get(pid, iodata, headers) :: reference
+  def get(server_pid, path, headers \\ []) do
+    request(server_pid, "GET", path, headers)
+  end
+
+  @spec options(pid, iodata, headers) :: reference
+  def options(server_pid, path, headers \\ []) do
+    request(server_pid, "OPTIONS", path, headers)
+  end
+
+  @spec delete(pid, iodata, headers) :: reference
+  def delete(server_pid, path, headers \\ []) do
+    request(server_pid, "DELETE", path, headers)
+  end
+
+  @spec post(pid, iodata, headers, iodata) :: reference
+  def post(server_pid, path, headers \\ [], body \\ <<>>) do
+    request(server_pid, "POST", path, headers, body)
+  end
+
+  @spec put(pid, iodata, headers, iodata) :: reference
+  def put(server_pid, path, headers \\ [], body \\ <<>>) do
+    request(server_pid, "PUT", path, headers, body)
+  end
+
+  @spec patch(pid, iodata, headers, iodata) :: reference
+  def patch(server_pid, path, headers \\ [], body \\ <<>>) do
+    request(server_pid, "PATCH", path, headers, body)
+  end
+
+  @spec request(pid, iodata, iodata, Keyword.t, iodata) :: reference
+  def request(server_pid, method, path, headers \\ [], body \\ <<>>) do
+    stream_ref = make_ref
+    send(server_pid, {:request, self(), stream_ref, method, path, headers, body})
+    stream_ref
+  end
+
+  # Private
 
   @spec default_transport(:inet.port_number) :: :ssl | :tcp
   defp default_transport(443) do
@@ -69,7 +117,7 @@ defmodule HTTP2 do
         {:active, false}
         | Dict.get(opts, :transport_opts, [])
       ]
-      
+
       case transport.connect(host, port, transport_opts) do
         {:ok, socket} ->
           IO.puts("connected without TLS")
@@ -115,8 +163,8 @@ defmodule HTTP2 do
   @spec loop(HTTP2.State.t) :: no_return
   defp loop(%HTTP2.State{
     owner: _owner,
-    host: _host,
-    port: _port,
+    host: host,
+    port: port,
     opts: _opts,
     socket: socket,
     transport: transport,
@@ -142,6 +190,10 @@ defmodule HTTP2 do
         {^error, socket, reason} ->
           transport.close(socket)
           down(state, {:error, reason})
+        {:request, _owner, stream_ref, method, path, headers, body} ->
+          proto_state2 = HTTP2.Protocol.request(proto_state, stream_ref, method,
+          host, port, path, headers, body)
+          loop(%{state | protocol_state: proto_state2})
       end
   end
 end

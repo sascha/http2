@@ -76,6 +76,19 @@
             Summary
           </h1>
           
+  <div class="summary-types summary">
+    <h2>
+      <a href="#types">Types</a>
+    </h2>
+    <div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:headers/0">headers()</a>
+  </div>
+  
+</div>
+
+  </div>
+
 
           
   <div class="summary-functions summary">
@@ -84,6 +97,24 @@
     </h2>
     <div class="summary-row">
   <div class="summary-signature">
+    <a href="#delete/3">delete(server_pid, path, headers \\ [])</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#get/3">get(server_pid, path, headers \\ [])</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#head/3">head(server_pid, path, headers \\ [])</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
     <a href="#init/4">init(owner, host, port, opts)</a>
   </div>
   
@@ -91,6 +122,36 @@
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#open/3">open(host, port, opts \\ [])</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#options/3">options(server_pid, path, headers \\ [])</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#patch/4">patch(server_pid, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#post/4">post(server_pid, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#put/4">put(server_pid, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</a>
+  </div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#request/5">request(server_pid, method, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</a>
   </div>
   
 </div>
@@ -106,6 +167,22 @@
       
 
       
+        <section id="types" class="types details-list">
+          <h1 class="section-heading">
+            <a class="hover-link" href="#types">
+              <i class="icon-link"></i>
+            </a>
+            Types
+          </h1>
+          <div class="types-list">
+            <div id="t:headers/0" class="type-detail">
+  <pre><code class="elixir"><a href="#t:headers/0">headers</a> :: [{binary, iodata}]</code></pre>
+  
+</div>
+
+          </div>
+        </section>
+      
 
       
         <section id="functions" class="details-list">
@@ -115,7 +192,73 @@
             </a>
             Functions
           </h1>
-          <div class="detail" id="init/4">
+          <div class="detail" id="delete/3">
+  <div class="detail-header">
+    <a href="#delete/3" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">delete(server_pid, path, headers \\ [])</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">delete(pid, iodata, <a href="#t:headers/0">headers</a>) :: reference</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="get/3">
+  <div class="detail-header">
+    <a href="#get/3" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">get(server_pid, path, headers \\ [])</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">get(pid, iodata, <a href="#t:headers/0">headers</a>) :: reference</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="head/3">
+  <div class="detail-header">
+    <a href="#head/3" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">head(server_pid, path, headers \\ [])</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">head(pid, iodata, <a href="#t:headers/0">headers</a>) :: reference</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="init/4">
   <div class="detail-header">
     <a href="#init/4" class="detail-link" title="Link to this function">
       <i class="icon-link"></i>
@@ -151,6 +294,116 @@
       <div class="specs-list">
         
           <pre><code class="elixir">open(<a href="http://elixir-lang.org/docs/stable/elixir/String.html#t:t/0">String.t</a>, :inet.port_number, <a href="http://elixir-lang.org/docs/stable/elixir/Keyword.html#t:t/0">Keyword.t</a>) :: {:ok, pid}</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="options/3">
+  <div class="detail-header">
+    <a href="#options/3" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">options(server_pid, path, headers \\ [])</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">options(pid, iodata, <a href="#t:headers/0">headers</a>) :: reference</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="patch/4">
+  <div class="detail-header">
+    <a href="#patch/4" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">patch(server_pid, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">patch(pid, iodata, <a href="#t:headers/0">headers</a>, iodata) :: reference</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="post/4">
+  <div class="detail-header">
+    <a href="#post/4" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">post(server_pid, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">post(pid, iodata, <a href="#t:headers/0">headers</a>, iodata) :: reference</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="put/4">
+  <div class="detail-header">
+    <a href="#put/4" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">put(server_pid, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">put(pid, iodata, <a href="#t:headers/0">headers</a>, iodata) :: reference</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    
+  </section>
+</div>
+<div class="detail" id="request/5">
+  <div class="detail-header">
+    <a href="#request/5" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">request(server_pid, method, path, headers \\ [], body \\ &lt;&lt;&gt;&gt;)</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">request(pid, iodata, iodata, <a href="http://elixir-lang.org/docs/stable/elixir/Keyword.html#t:t/0">Keyword.t</a>, iodata) :: reference</code></pre>
         
       </div>
     </div>

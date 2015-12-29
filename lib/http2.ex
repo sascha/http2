@@ -38,7 +38,13 @@ defmodule HTTP2 do
     port: port,
     opts: opts,
     transport: transport = :ranch_ssl} = state, retries) do
-      transport_opts = [:binary, {:active, false}, {:alpn_advertised_protocols, ["h2"]} | Dict.get(opts, :transport_opts, [])]
+      transport_opts = [
+        :binary,
+        {:active, false},
+        {:alpn_advertised_protocols, ["h2"]}
+        | Dict.get(opts, :transport_opts, [])
+      ]
+
       case transport.connect(host, port, transport_opts) do
         {:ok, socket} ->
           case :ssl.negotiated_protocol(socket) do
@@ -58,7 +64,12 @@ defmodule HTTP2 do
     port: port,
     opts: opts,
     transport: transport} = state, retries) do
-      transport_opts = [:binary, {:active, false} | Dict.get(opts, :transport_opts, [])]
+      transport_opts = [
+        :binary,
+        {:active, false}
+        | Dict.get(opts, :transport_opts, [])
+      ]
+      
       case transport.connect(host, port, transport_opts) do
         {:ok, socket} ->
           IO.puts("connected without TLS")
@@ -116,7 +127,6 @@ defmodule HTTP2 do
 
       # Receive one message at a time
       transport.setopts(socket, [{:active, :once}])
-
       receive do
         {^ok, socket, data} ->
           case HTTP2.Protocol.handle(data, proto_state) do

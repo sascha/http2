@@ -52,7 +52,16 @@ defmodule HTTP2.Protocol do
 
   @spec preface(HTTP2.Protocol.t) :: HTTP2.Protocol.t
   def preface(%HTTP2.Protocol{socket: socket, transport: transport} = state) do
+    IO.puts "Sending preface"
     transport.send(socket, HTTP2.RequestBuilder.preface)
+    IO.puts "Sending empty settings"
+    transport.send(socket, HTTP2.RequestBuilder.settings)
+    state
+  end
+
+  @spec settings(HTTP2.Protocol.t) :: HTTP2.Protocol.t
+  def settings(%HTTP2.Protocol{socket: socket, transport: transport} = state) do
+    transport.send(socket, HTTP2.RequestBuilder.settings)
     state
   end
 

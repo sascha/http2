@@ -7,27 +7,20 @@ defmodule HTTP2.Mixfile do
      elixir: "~> 1.1",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps,
+     description: "http2 is an HTTP/2 client for Elixir",
+     package: [
+       maintainers: ["Sascha Schwabbauer"],
+       links: %{"GitHub" => "https://github.com/sascha/http2"}
+     ]]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
   def application do
     [mod: {HTTP2.Application, []},
     applications: [:ranch, :ssl, :logger],
     registered: [HTTP2.Supervisor]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options
   defp deps do
     [{:ranch, github: "ninenines/ranch"},
     {:earmark, "~> 0.1", only: :dev},

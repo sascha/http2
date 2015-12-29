@@ -342,12 +342,8 @@ defmodule HTTP2.ResponseParser do
     parse_settings(rest, length - 6, Keyword.put(settings, :enable_push, false))
   end
 
-  defp parse_settings(<< 2 :: 16, 1 :: 32, rest :: bitstring >>, length, settings) do
-    parse_settings(rest, length - 6, Keyword.put(settings, :enable_push, true))
-  end
-
   defp parse_settings(<< 2 :: 16, _ :: 32, _ :: bitstring >>, _, _) do
-    { :connection_error, :protocol_error, "The SETTINGS_ENABLE_PUSH value MUST be 0 or 1." }
+    { :connection_error, :protocol_error, "The SETTINGS_ENABLE_PUSH value MUST be 0 for clients." }
   end
 
   ## SETTINGS_MAX_CONCURRENT_STREAMS

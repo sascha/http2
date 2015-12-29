@@ -46,4 +46,14 @@ defmodule HTTP2.Protocol do
     handle_loop(rest, state)
   end
 
+  ##
+  ## Frame Sending
+  ##
+
+  @spec preface(HTTP2.Protocol.t) :: HTTP2.Protocol.t
+  def preface(%HTTP2.Protocol{socket: socket, transport: transport} = state) do
+    transport.send(socket, HTTP2.RequestBuilder.preface)
+    state
+  end
+
 end

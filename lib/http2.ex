@@ -14,6 +14,7 @@ defmodule HTTP2 do
       :ssl ->
         :ranch_ssl
     end
+
     connect(%HTTP2.State{
       owner: owner,
       host: host,
@@ -87,6 +88,7 @@ defmodule HTTP2 do
   @spec up(HTTP2.State.t, :inet.socket | :ssl.sslsocket) :: no_return
   defp up(%HTTP2.State{owner: owner, transport: transport} = state, socket) do
     proto_state = HTTP2.Protocol.init(owner, socket, transport)
+    proto_state = HTTP2.Protocol.preface(proto_state)
     send(owner, {:http2_up, self()})
     loop(%{state | socket: socket, protocol_state: proto_state})
   end

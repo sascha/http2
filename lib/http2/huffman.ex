@@ -133,7 +133,13 @@ defmodule HTTP2.Huffman do
 
   for {byte, code} <- @code_by_byte do
     defp code_for_byte(unquote(byte)), do: unquote(code)
+
+    defp byte_for_code(<< unquote(code), rest :: bitstring >>) do
+      { unquote(byte), rest }
+    end
   end
+
+  defp byte_for_code(input), do: { :no_match, input }
 
   @spec encode(binary) :: binary
   def encode(input) do
@@ -154,7 +160,27 @@ defmodule HTTP2.Huffman do
 
   @spec decode(binary) :: binary
   def decode(input) do
-    # TODO
-    input
+    decode(input, <<>>)
+  end
+
+  defp decode(input, decoded) do
+    case byte_for_code(input) do
+      { :no_match, rest } ->
+        padding_size = bit_size(rest)
+        if padding_size > 7 do
+          { :decoding_error, "Padding is larger than 7 bits" }
+        else
+          # Get most significant bits of EOS
+          << eos :: size(padding_size), _ :: bitstring >> = code_for_byte(<< 256 >>)
+          case rest do
+            << ^eos :: size(padding_size) >> ->
+              decoded
+            _ ->
+              { :decoding_error, "Padding does not match most significant bits of EOS" }
+          end
+        end
+      { byte, rest } ->
+        decode(rest, << decoded :: binary, byte :: binary >>)
+    end
   end
 end

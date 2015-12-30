@@ -87,11 +87,19 @@
     <a href="#decode/1">decode(input)</a>
   </div>
   
+    <div class="summary-synopsis"><p>Decodes the given <code class="inline">input</code> using the Huffman code described at
+<a href="https://httpwg.github.io/specs/rfc7541.html#huffman.code">https://httpwg.github.io/specs/rfc7541.html#huffman.code</a></p>
+</div>
+  
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#encode/1">encode(input)</a>
   </div>
+  
+    <div class="summary-synopsis"><p>Encodes the given <code class="inline">input</code> using the Huffman code described at
+<a href="https://httpwg.github.io/specs/rfc7541.html#huffman.code">https://httpwg.github.io/specs/rfc7541.html#huffman.code</a></p>
+</div>
   
 </div>
 
@@ -134,7 +142,20 @@
     </div>
   
   <section class="docstring">
-    
+    <p>Decodes the given <code class="inline">input</code> using the Huffman code described at
+<a href="https://httpwg.github.io/specs/rfc7541.html#huffman.code">https://httpwg.github.io/specs/rfc7541.html#huffman.code</a>.</p>
+<h2>Examples</h2>
+<pre><code class="iex elixir">iex&gt; HTTP2.Huffman.decode(&lt;&lt;241, 227, 194, 229, 242, 58, 107, 160, 171, 144, 244, 255&gt;&gt;)
+&quot;www.example.com&quot;</code></pre>
+<p>Input bytes that cannot be decoded are considered to be padding. Padding larger
+than 7 bits results in a decoding error:</p>
+<pre><code class="iex elixir">iex&gt; HTTP2.Huffman.decode(&lt;&lt; 511 :: 9 &gt;&gt;)
+{:decoding_error, &quot;Padding is larger than 7 bits&quot;}</code></pre>
+<p>In addition padding bits have to match the most significant EOS (end-of-string) bits.
+Padding bits that don’t match result in a decoding error:</p>
+<pre><code class="iex elixir">iex&gt; HTTP2.Huffman.decode(&lt;&lt; 2 :: 6 &gt;&gt;)
+{:decoding_error, &quot;Padding does not match most significant bits of EOS&quot;}</code></pre>
+
   </section>
 </div>
 <div class="detail" id="encode/1">
@@ -156,7 +177,12 @@
     </div>
   
   <section class="docstring">
-    
+    <p>Encodes the given <code class="inline">input</code> using the Huffman code described at
+<a href="https://httpwg.github.io/specs/rfc7541.html#huffman.code">https://httpwg.github.io/specs/rfc7541.html#huffman.code</a>.</p>
+<h2>Examples</h2>
+<pre><code class="iex elixir">iex&gt; HTTP2.Huffman.encode(&quot;www.example.com&quot;)
+&lt;&lt;241, 227, 194, 229, 242, 58, 107, 160, 171, 144, 244, 255&gt;&gt;</code></pre>
+
   </section>
 </div>
 

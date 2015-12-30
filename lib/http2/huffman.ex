@@ -141,6 +141,16 @@ defmodule HTTP2.Huffman do
 
   defp byte_for_code(input), do: { :no_match, input }
 
+  @doc """
+  Encodes the given `input` using the Huffman code described at
+  https://httpwg.github.io/specs/rfc7541.html#huffman.code.
+
+  ## Examples
+
+      iex> HTTP2.Huffman.encode("www.example.com")
+      <<241, 227, 194, 229, 242, 58, 107, 160, 171, 144, 244, 255>>
+
+  """
   @spec encode(binary) :: binary
   def encode(input) do
     encode(input, <<>>)
@@ -158,6 +168,28 @@ defmodule HTTP2.Huffman do
     << encoded :: bitstring, padding :: size(missing_bits) >>
   end
 
+  @doc """
+  Decodes the given `input` using the Huffman code described at
+  https://httpwg.github.io/specs/rfc7541.html#huffman.code.
+
+  ## Examples
+
+      iex> HTTP2.Huffman.decode(<<241, 227, 194, 229, 242, 58, 107, 160, 171, 144, 244, 255>>)
+      "www.example.com"
+
+  Input bytes that cannot be decoded are considered to be padding. Padding larger
+  than 7 bits results in a decoding error:
+
+      iex> HTTP2.Huffman.decode(<< 511 :: 9 >>)
+      {:decoding_error, "Padding is larger than 7 bits"}
+
+  In addition padding bits have to match the most significant EOS (end-of-string) bits.
+  Padding bits that don't match result in a decoding error:
+
+      iex> HTTP2.Huffman.decode(<< 2 :: 6 >>)
+      {:decoding_error, "Padding does not match most significant bits of EOS"}
+
+  """
   @spec decode(binary) :: binary
   def decode(input) do
     decode(input, <<>>)

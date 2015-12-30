@@ -1,4 +1,7 @@
 defmodule HTTP2.Protocol do
+  alias HTTP2.ResponseParser
+  alias HTTP2.RequestBuilder
+
   defstruct [
     owner: nil,
     socket: nil,
@@ -13,19 +16,19 @@ defmodule HTTP2.Protocol do
     buffer: bitstring
   }
 
-  @spec init(pid, :inet.socket | :ssl.sslsocket, module) :: HTTP2.Protocol.t
+  @spec init(pid, :inet.socket | :ssl.sslsocket, module) :: t
   def init(owner, socket, transport) do
     %HTTP2.Protocol{owner: owner, socket: socket, transport: transport}
   end
 
-  @spec handle(binary, HTTP2.Protocol.t) :: HTTP2.Protocol.t | :close
+  @spec handle(binary, t) :: t | :close
   def handle(data, %HTTP2.Protocol{buffer: buffer} = state) do
     handle_loop(buffer <> data, %{state | buffer: <<>>})
   end
 
-  @spec handle_loop(binary, HTTP2.Protocol.t) :: HTTP2.Protocol.t | :close
+  @spec handle_loop(binary, t) :: t | :close
   defp handle_loop(data, state) do
-    case HTTP2.ResponseParser.parse(data) do
+    case ResponseParser.parse(data) do
       {:ok, frame, rest} ->
         IO.puts("got a complete frame: #{inspect frame}")
         handle_frame(rest, state, frame)
@@ -38,8 +41,7 @@ defmodule HTTP2.Protocol do
   ## Frame Handling
   ##
 
-  @spec handle_frame(binary, HTTP2.Protocol.t,
-  HTTP2.ResponseParser.frame) :: HTTP2.Protocol.t | :close
+  @spec handle_frame(binary, t, ResponseParser.frame) :: t | :close
 
   defp handle_frame(rest, state, frame) do
     # TODO
@@ -50,27 +52,27 @@ defmodule HTTP2.Protocol do
   ## Frame Sending
   ##
 
-  @spec request(HTTP2.Protocol.t, reference, iodata, :inet.hostname, :inet.port_number,
-  iodata, HTTP2.headers, iodata) :: HTTP2.Protocol.t
+  @spec request(t, reference, iodata, :inet.hostname, :inet.port_number,
+  iodata, HTTP2.headers, iodata) :: t
   def request(%HTTP2.Protocol{socket: socket, transport: transport} = state,
   stream_ref, method, host, port, path, headers \\ [], body \\ <<>>) do
     # TODO
     state
   end
 
-  @spec preface(HTTP2.Protocol.t) :: HTTP2.Protocol.t
+  @spec preface(t) :: t
   def preface(%HTTP2.Protocol{socket: socket, transport: transport} = state) do
     IO.puts "Sending preface with empty settings frame"
     transport.send(socket, [
-      HTTP2.RequestBuilder.preface,
-      HTTP2.RequestBuilder.settings
+      RequestBuilder.preface,
+      RequestBuilder.settings
     ])
     state
   end
 
-  @spec settings(HTTP2.Protocol.t) :: HTTP2.Protocol.t
+  @spec settings(t) :: t
   def settings(%HTTP2.Protocol{socket: socket, transport: transport} = state) do
-    transport.send(socket, HTTP2.RequestBuilder.settings)
+    transport.send(socket, RequestBuilder.settings)
     state
   end
 

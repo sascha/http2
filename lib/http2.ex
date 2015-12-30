@@ -1,4 +1,7 @@
 defmodule HTTP2 do
+  alias HTTP2.State
+  alias HTTP2.Protocol
+
   @type headers :: [{binary, iodata}]
 
   @spec open(String.t, :inet.port_number, Keyword.t) :: {:ok, pid}
@@ -17,7 +20,7 @@ defmodule HTTP2 do
         :ranch_ssl
     end
 
-    connect(%HTTP2.State{
+    connect(%State{
       owner: owner,
       host: host,
       port: port,
@@ -80,8 +83,8 @@ defmodule HTTP2 do
     :tcp
   end
 
-  @spec connect(HTTP2.State.t, non_neg_integer) :: no_return
-  defp connect(%HTTP2.State{
+  @spec connect(State.t, non_neg_integer) :: no_return
+  defp connect(%State{
     host: host,
     port: port,
     opts: opts,
@@ -107,7 +110,7 @@ defmodule HTTP2 do
       end
   end
 
-  defp connect(%HTTP2.State{
+  defp connect(%State{
     host: host,
     port: port,
     opts: opts,
@@ -129,12 +132,12 @@ defmodule HTTP2 do
 
   # Retry logic
 
-  @spec retry(HTTP2.State.t, non_neg_integer) :: no_return
+  @spec retry(State.t, non_neg_integer) :: no_return
   defp retry(_, 0) do
     exit(:gone)
   end
 
-  defp retry(%HTTP2.State{opts: opts} = state, retries) do
+  defp retry(%State{opts: opts} = state, retries) do
     Process.send_after(self(), :retry, Dict.get(opts, :retry_timeout, 5000))
     receive do
       :retry ->
@@ -144,24 +147,24 @@ defmodule HTTP2 do
 
   # Up/down logic
 
-  @spec up(HTTP2.State.t, :inet.socket | :ssl.sslsocket) :: no_return
-  defp up(%HTTP2.State{owner: owner, transport: transport} = state, socket) do
-    proto_state = HTTP2.Protocol.init(owner, socket, transport)
-    proto_state = HTTP2.Protocol.preface(proto_state)
+  @spec up(State.t, :inet.socket | :ssl.sslsocket) :: no_return
+  defp up(%State{owner: owner, transport: transport} = state, socket) do
+    proto_state = Protocol.init(owner, socket, transport)
+    proto_state = Protocol.preface(proto_state)
     send(owner, {:http2_up, self()})
     loop(%{state | socket: socket, protocol_state: proto_state})
   end
 
-  @spec down(HTTP2.State.t, :normal | :closed | {:error, any}) :: no_return
-  defp down(%HTTP2.State{owner: owner, opts: opts} = state, reason) do
+  @spec down(State.t, :normal | :closed | {:error, any}) :: no_return
+  defp down(%State{owner: owner, opts: opts} = state, reason) do
     send(owner, {:http2_down, self(), reason})
     retry(%{state | socket: nil}, Dict.get(opts, :retry, 5))
   end
 
   # loop
 
-  @spec loop(HTTP2.State.t) :: no_return
-  defp loop(%HTTP2.State{
+  @spec loop(State.t) :: no_return
+  defp loop(%State{
     owner: _owner,
     host: host,
     port: port,
@@ -177,7 +180,7 @@ defmodule HTTP2 do
       transport.setopts(socket, [{:active, :once}])
       receive do
         {^ok, socket, data} ->
-          case HTTP2.Protocol.handle(data, proto_state) do
+          case Protocol.handle(data, proto_state) do
             :close ->
               transport.close(socket)
               down(state, :normal)
@@ -191,7 +194,7 @@ defmodule HTTP2 do
           transport.close(socket)
           down(state, {:error, reason})
         {:request, _owner, stream_ref, method, path, headers, body} ->
-          proto_state2 = HTTP2.Protocol.request(proto_state, stream_ref, method,
+          proto_state2 = Protocol.request(proto_state, stream_ref, method,
           host, port, path, headers, body)
           loop(%{state | protocol_state: proto_state2})
       end

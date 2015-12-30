@@ -132,13 +132,13 @@ defmodule HTTP2.Huffman do
   }
 
   for {byte, code} <- @code_by_byte do
-    def code_for_byte(unquote(byte)), do: unquote(code)
+    defp code_for_byte(unquote(byte)), do: unquote(code)
   end
 
   @spec encode(binary, bitstring) :: bitstring
-  def encode(binary, encoded \\ <<>>)
+  def encode(input, encoded \\ <<>>)
 
-  def encode(<< head :: binary-size(1), rest :: bitstring >>, encoded) do
+  def encode(<< head :: binary-size(1), rest :: binary >>, encoded) do
     encode(rest, << encoded :: bitstring, code_for_byte(head) :: bitstring >>)
   end
 
@@ -148,5 +148,11 @@ defmodule HTTP2.Huffman do
     missing_bits = 8 - rem(bit_size(encoded), 8)
     << padding :: size(missing_bits), _ :: bitstring >> = code_for_byte(<< 256 >>)
     << encoded :: bitstring, padding :: size(missing_bits) >>
+  end
+
+  @spec decode(binary) :: binary
+  def decode(input) do
+    # TODO
+    input
   end
 end

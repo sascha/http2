@@ -1,0 +1,218 @@
+    <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.11.2">
+    <title>HTTP2.HPACK – http2 v0.0.1</title>
+    <link rel="stylesheet" href="dist/app-feafe9a25b.css" />
+    <script src="dist/sidebar_items.js"></script>
+  </head>
+  <body data-type="modules">
+
+    <div class="main">
+<button class="sidebar-toggle">
+  <i class="icon-menu"></i>
+</button>
+<section class="sidebar">
+  <button class="sidebar-toggle">
+    <i class="icon-menu"></i>
+  </button>
+
+  
+  <a href="api-reference.html" class="sidebar-projectLink">
+    <div class="sidebar-projectDetails">
+      <h1 class="sidebar-projectName">
+        http2
+      </h1>
+      <h2 class="sidebar-projectVersion">
+        v0.0.1
+      </h2>
+    </div>
+    
+  </a>
+
+  <div class="sidebar-search">
+    <i class="icon-search"></i>
+    <input type="text" class="sidebar-searchInput" placeholder="search" autocomplete="off" />
+  </div>
+
+  <ul class="sidebar-listNav">
+    <li><a id="extras-list" href="#full-list">Pages</a></li>
+
+    
+      <li><a id="modules-list" href="#full-list">Modules</a></li>
+    
+
+    
+
+    
+  </ul>
+
+  <ul id="full-list" class="sidebar-fullList"></ul>
+  <div class="sidebar-noResults"></div>
+</section>
+
+<section class="content">
+  <div id="content" class="content-inner">
+
+
+      <h1>
+        <small class="visible-xs">http2 v0.0.1</small>
+        HTTP2.HPACK
+        
+        
+      </h1>
+
+      
+
+      
+        <section id="summary" class="details-list">
+          <h1 class="section-heading">
+            <a class="hover-link" href="#summary">
+              <i class="icon-link"></i>
+            </a>
+            Summary
+          </h1>
+          
+
+          
+  <div class="summary-functions summary">
+    <h2>
+      <a href="#functions">Functions</a>
+    </h2>
+    <div class="summary-row">
+  <div class="summary-signature">
+    <a href="#decode_integer/2">decode_integer(bytes, prefix_length)</a>
+  </div>
+  
+    <div class="summary-synopsis"><p>Decodes the integer encoded in <code class="inline">bytes</code> using an <code class="inline">prefix_length</code>-bit prefix and the
+algorithm described at <a href="https://httpwg.github.io/specs/rfc7541.html#integer.representation">https://httpwg.github.io/specs/rfc7541.html#integer.representation</a></p>
+</div>
+  
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#encode_integer/2">encode_integer(value, prefix_length)</a>
+  </div>
+  
+    <div class="summary-synopsis"><p>Encodes the given integer <code class="inline">value</code> within an <code class="inline">prefix_length</code>-bit prefix using the
+algorithm described at <a href="https://httpwg.github.io/specs/rfc7541.html#integer.representation">https://httpwg.github.io/specs/rfc7541.html#integer.representation</a></p>
+</div>
+  
+</div>
+
+  </div>
+
+
+          
+
+          
+
+        </section>
+      
+
+      
+
+      
+        <section id="functions" class="details-list">
+          <h1 class="section-heading">
+            <a class="hover-link" href="#functions">
+              <i class="icon-link"></i>
+            </a>
+            Functions
+          </h1>
+          <div class="detail" id="decode_integer/2">
+  <div class="detail-header">
+    <a href="#decode_integer/2" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">decode_integer(bytes, prefix_length)</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">decode_integer(bitstring, 1 .. 8) :: non_neg_integer</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    <p>Decodes the integer encoded in <code class="inline">bytes</code> using an <code class="inline">prefix_length</code>-bit prefix and the
+algorithm described at <a href="https://httpwg.github.io/specs/rfc7541.html#integer.representation">https://httpwg.github.io/specs/rfc7541.html#integer.representation</a>.</p>
+<h2>Examples</h2>
+<pre><code class="iex elixir">iex&gt; HTTP2.HPACK.decode_integer(&lt;&lt; 10 :: 5 &gt;&gt;, 5)
+10
+
+iex&gt; HTTP2.HPACK.decode_integer(&lt;&lt; 31 :: 5, 154, 10 &gt;&gt;, 5)
+1337
+
+iex&gt; HTTP2.HPACK.decode_integer(&lt;&lt; 42 &gt;&gt;, 8)
+42</code></pre>
+
+  </section>
+</div>
+<div class="detail" id="encode_integer/2">
+  <div class="detail-header">
+    <a href="#encode_integer/2" class="detail-link" title="Link to this function">
+      <i class="icon-link"></i>
+    </a>
+    <span class="signature">encode_integer(value, prefix_length)</span>
+      
+  </div>
+  
+    <div class="specs">
+      <h4 class="specs-title">Specs</h4>
+      <div class="specs-list">
+        
+          <pre><code class="elixir">encode_integer(non_neg_integer, 1 .. 8) :: bitstring</code></pre>
+        
+      </div>
+    </div>
+  
+  <section class="docstring">
+    <p>Encodes the given integer <code class="inline">value</code> within an <code class="inline">prefix_length</code>-bit prefix using the
+algorithm described at <a href="https://httpwg.github.io/specs/rfc7541.html#integer.representation">https://httpwg.github.io/specs/rfc7541.html#integer.representation</a>.</p>
+<h2>Examples</h2>
+<pre><code class="iex elixir">iex&gt; HTTP2.HPACK.encode_integer(10, 5)
+&lt;&lt;10::size(5)&gt;&gt;
+
+iex&gt; HTTP2.HPACK.encode_integer(1337, 5)
+&lt;&lt;252, 208, 10::size(5)&gt;&gt;
+
+iex&gt; HTTP2.HPACK.encode_integer(42, 8)
+&quot;*&quot;</code></pre>
+
+  </section>
+</div>
+
+        </section>
+      
+
+      
+
+      
+        <footer class="footer">
+      <p>
+        <span class="line">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" rel="help" target="_blank">ExDoc</a> (v0.11.2),
+        </span>
+        <span class="line">
+          designed by
+          <a href="https://twitter.com/dignifiedquire" target="_blank" title="@dignifiedquire">Friedel Ziegelmayer</a>.
+          </span>
+      </p>
+      <button class="night-mode-toggle" />
+    </footer>
+  </div>
+</section>
+</div>
+  <script src="dist/app-1d1b741c5e.js"></script>
+  </body>
+</html>
+

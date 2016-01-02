@@ -1,6 +1,5 @@
 defmodule HTTP2.Protocol do
-  alias HTTP2.ResponseParser
-  alias HTTP2.RequestBuilder
+  alias HTTP2.{ResponseParser, RequestBuilder}
 
   defstruct [
     owner: nil,

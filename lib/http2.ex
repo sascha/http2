@@ -1,6 +1,5 @@
 defmodule HTTP2 do
-  alias HTTP2.State
-  alias HTTP2.Protocol
+  alias HTTP2.{State, Protocol}
 
   @type headers :: [{binary, iodata}]
 
@@ -12,8 +11,8 @@ defmodule HTTP2 do
 
   @spec init(pid, char_list, :inet.port_number, Keyword.t) :: no_return
   def init(owner, host, port, opts) do
-    retry = Dict.get(opts, :retry, 5)
-    transport = case Dict.get(opts, :transport, default_transport(port)) do
+    retry = Keyword.get(opts, :retry, 5)
+    transport = case Keyword.get(opts, :transport, default_transport(port)) do
       :tcp ->
         :ranch_tcp
       :ssl ->
@@ -93,7 +92,7 @@ defmodule HTTP2 do
         :binary,
         {:active, false},
         {:alpn_advertised_protocols, ["h2"]}
-        | Dict.get(opts, :transport_opts, [])
+        | Keyword.get(opts, :transport_opts, [])
       ]
 
       case transport.connect(host, port, transport_opts) do
@@ -118,7 +117,7 @@ defmodule HTTP2 do
       transport_opts = [
         :binary,
         {:active, false}
-        | Dict.get(opts, :transport_opts, [])
+        | Keyword.get(opts, :transport_opts, [])
       ]
 
       case transport.connect(host, port, transport_opts) do
@@ -138,7 +137,7 @@ defmodule HTTP2 do
   end
 
   defp retry(%State{opts: opts} = state, retries) do
-    Process.send_after(self(), :retry, Dict.get(opts, :retry_timeout, 5000))
+    Process.send_after(self(), :retry, Keyword.get(opts, :retry_timeout, 5000))
     receive do
       :retry ->
         connect(state, retries - 1)
@@ -158,7 +157,7 @@ defmodule HTTP2 do
   @spec down(State.t, :normal | :closed | {:error, any}) :: no_return
   defp down(%State{owner: owner, opts: opts} = state, reason) do
     send(owner, {:http2_down, self(), reason})
-    retry(%{state | socket: nil}, Dict.get(opts, :retry, 5))
+    retry(%{state | socket: nil}, Keyword.get(opts, :retry, 5))
   end
 
   # loop

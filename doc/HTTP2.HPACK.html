@@ -136,7 +136,7 @@ algorithm described at <a href="https://httpwg.github.io/specs/rfc7541.html#inte
       <h4 class="specs-title">Specs</h4>
       <div class="specs-list">
         
-          <pre><code class="elixir">decode_integer(bitstring, 1 .. 8) :: non_neg_integer</code></pre>
+          <pre><code class="elixir">decode_integer(bitstring, 1..8) :: non_neg_integer</code></pre>
         
       </div>
     </div>
@@ -169,7 +169,7 @@ iex&gt; HTTP2.HPACK.decode_integer(&lt;&lt; 42 &gt;&gt;, 8)
       <h4 class="specs-title">Specs</h4>
       <div class="specs-list">
         
-          <pre><code class="elixir">encode_integer(non_neg_integer, 1 .. 8) :: bitstring</code></pre>
+          <pre><code class="elixir">encode_integer(non_neg_integer, 1..8) :: bitstring</code></pre>
         
       </div>
     </div>
